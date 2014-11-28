@@ -1,0 +1,99 @@
+# **** Example of building a database and classification with the division into successive stages *****
+# The following examples are provided to illustrate how to use of programs on previously prepared data.
+# The following artificial data have been prepared:
+# a) Three files containing part of the reference sequences (in total 64022 sequences) downloaded from
+#		the NCBI genome database (ftp://ftp.ncbi.nlm.nih.gov/blast/db/) in 2012
+# b) File with metagenomic data set. In total 975 reads:
+#		955 reads - Part of metagenomic data set downloaded from the FACS web site (http://facs.scilifelab.se/)
+#		 20 reads - Part of metagenomic data set downloaded from the WebCARMA web site (http://webcarma.cebitec.uni-bielefeld.de) 
+
+# To not to download a large gi_taxid_nucl.dmp file, the tax numer had been added to each reference sequence. 
+# Also earlier version of the files names.dmp and nodes.dmp are attached (downloaded August 6, 2012 from 
+# ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz), which are compatible with added tax numbers.
+# Subsection numbers in the following description correspond to subsection numbers in the readme.txt file.
+
+
+# Successive stages are itemized according to "readme.txt" file (C section)
+# Set the directory to the CoMeta folder 
+# cd <my_path>/cometa
+
+# **********************************************************************************************************************************
+# I ***** Data preparation for the building of k-mer databases ***** 
+# 1. Prepared reference sequences contain a tax numers.
+#
+# 2. Divide reference sequences into groups on taxomic (e.g. phylum) rank.
+
+mkdir ./example/reference_sequence/phylum_nt
+for i in 00 01 02
+do
+perl ./bin/class_seq_to_taxon_all.pl -i sequences_nt"$i"_TAX.fa -os _NT_"$i" -Pin ./example/reference_sequence/NT_seq_tax \
+-Pout ./example/reference_sequence/phylum_nt -LS phylum  -LF superkingdom -Pncbi ./example/NCBI_tree_tax
+done
+
+
+# **********************************************************************************************************************************
+# II ***** Build k-mers database for phylum rank *****
+
+# 1. Generate a file containg file names. In this example, reference sequences belonging to one group are located in several files.
+
+ls -1 --ignore='_*'  ./example/reference_sequence/phylum_nt/  >  ./example/reference_sequence/phylum_nt/_File_names.txt
+mkdir ./example/reference_sequence/phylum_nt/_filenames
+perl ./bin/gen_list_names.pl  -nf _File_names.txt -pf ./example/reference_sequence/phylum_nt -ps ./example/reference_sequence/phylum_nt/_filenames
+
+
+# 2. Build kmer databases for k=24 (k-mer length) 
+
+mkdir ./example/tempbins
+mkdir ./example/database
+mkdir ./example/database/phylum_nt
+
+for fileNW in ./example/reference_sequence/phylum_nt/_filenames/NW*
+do
+# name without path
+nameOUT=${fileNW##*/}	
+# name without extension
+nameOUT=${nameOUT%%.*}	
+./bin/cometa -goB -k24 -L"$fileNW"  -Ddb_"$nameOUT"_k24  -WD./example/tempbins  -WS./example/reference_sequence/phylum_nt -WK./example/database/phylum_nt  -WO./example/database
+done
+
+
+#3. Decompressed build kmer database.
+
+for fileNW in ./example/reference_sequence/phylum_nt/_filenames/NW*
+do
+nameOUT=${fileNW##*/}	
+nameOUT=${nameOUT%%.*}
+./bin/tsk   -Ddb_"$nameOUT"_k24   -WK./example/database/phylum_nt
+done
+
+
+# **********************************************************************************************************************************
+# III ***** Read classification *****
+# 1.	Comparison step for mc=5
+
+mkdir ./example/scores1
+mkdir ./example/scores1/OUTcomp
+
+for fileNW in ./example/reference_sequence/phylum_nt/_filenames/NW*
+do
+nameOUT=${fileNW##*/}	
+nameOUT=${nameOUT%%.*}
+./bin/cometa   -goC  -mc5 -SMetagenomic_set.fasta  -DTr_db_"$nameOUT"_k24 -sK1 -WS./example -WK./example/database/phylum_nt  -NS"$nameOUT" -k24 -WO./example/scores1/OUTcomp
+done
+	
+
+# 2.	Assignment to the best group
+
+mkdir ./example/scores1/OUTclass	
+ls -1  --ignore='*score*' ./example/scores1/OUTcomp/  | grep "NW_" >  ./example/scores1/OUTcomp/name_file_comp.txt
+./bin/class2best  -WI./example/scores1/OUTcomp -WO./example/scores1/OUTclass	 -NFname_file_comp.txt   -NGname_file_comp.txt  -NR./example/Metagenomic_set.fasta   -cl-1
+
+
+# **********************************************************************************************************************************
+# At the output you receive (folder scores1/OUTclass): 
+# a) One file "Summarize_Class_dup.txt" which includes number of how many reads have been classified only to one group (974 reads) and to two groups (1 read)
+# b) Six files "scores_NW <name_group>.txt", which contain reads classified to <name_group> taxonomic group.
+# c) One file "scores_notknow.txt", file contains reads, which were not classified to any of the groups. In the example, this file is empty.
+# d) One file "scores_MultiClass.txt", file contains reads which were classified to multiple groups. In the example, only one read was classified to two gropus: 
+# to proteobacteria and acidobacteria
+

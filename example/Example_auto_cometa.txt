@@ -1,0 +1,94 @@
+# **** Example of full automation *****
+# The following examples are provided to illustrate how to use of programs on previously prepared data.
+# The following artificial data have been prepared:
+# a) Three files containing part of the reference sequences (in total 64022 sequences) downloaded from
+#		the NCBI genome database (ftp://ftp.ncbi.nlm.nih.gov/blast/db/) in 2012
+# b) File with metagenomic data set. In total 975 reads:
+#		955 reads - Part of metagenomic data set downloaded from the FACS web site (http://facs.scilifelab.se/)
+#		 20 reads - Part of metagenomic data set downloaded from the WebCARMA web site (http://webcarma.cebitec.uni-bielefeld.de) 
+
+# To not to download a large gi_taxid_nucl.dmp file, the tax numer had been added to each reference sequence. 
+# Also earlier version of the files names.dmp and nodes.dmp are attached (downloaded August 6, 2012 from 
+# ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz), which are compatible with added tax numbers.
+# Subsection numbers in the following description correspond to subsection numbers in the readme.txt file.
+
+
+
+
+# Successive stages are itemized according to "readme.txt" file (B section)
+# Set the directory to the CoMeta folder 
+# cd <my_path>/cometa/bin
+
+# Set the parametrs of CoMeta program:
+
+numMR=2
+numthreadALL=12
+numthreadSING=4
+kmer=24
+MISMATCH=1
+class_all=-1
+nameMeta=Metagenomic_set.fasta
+
+PATHDATA=`pwd`
+PATH_META_SET="$PATHDATA"/example
+PATH_IN_START_SEQ_REF="$PATHDATA"/example/reference_sequence/NT_seq_tax
+DIR_KMER_DATABASE="$PATHDATA"/example/database
+DIR_TAX_NCBI="$PATHDATA"/example/NCBI_tree_tax
+PATH_SEQ_REF="$PATHDATA"/example/reference_sequence
+PATH_TEMP_BIN="$PATHDATA"/example/tempbins
+DIR_MAIN_SCORE="$PATHDATA"/example/scores_aut
+PROCSIM=100
+GROUPTYPE=myexamp
+MC=5
+DIRPROG="$PATHDATA"/bin
+
+
+
+mkdir "$PATH_TEMP_BIN"
+mkdir "$DIR_KMER_DATABASE"
+mkdir "$DIR_MAIN_SCORE"
+
+
+
+# The start of the taxonomic classification of phylum rank
+
+echo -e "\n\n\n............................................................................."
+echo class2tax phylum
+echo -e ".............................................................................\n"
+
+./bin/CoMeta_bud_class_first -OTU phylum -mr $numMR -t "$numthreadSING" -tall "$numthreadALL" -k $kmer -mm $MISMATCH -cl $class_all -S "$nameMeta" \
+-WS "$PATH_META_SET" -dirinref $PATH_IN_START_SEQ_REF -WK $DIR_KMER_DATABASE -dirncbitax $DIR_TAX_NCBI -diroutref "$PATH_SEQ_REF"  \
+-WD "$PATH_TEMP_BIN" -dirin $DIR_MAIN_SCORE -proc "$PROCSIM" -suffDESCRP _"$GROUPTYPE" -mc $MC -stepk "$LEN_STEP"   \
+-maindir $DIRPROG -divseq 1  
+
+
+
+# Further stages of taxonomic classification into genus rank via the class, order, and family ranks.
+
+for class2tax in class order family genus
+do
+echo -e "\n\n\n............................................................................."
+echo class2tax $class2tax
+echo -e ".............................................................................\n"
+
+./bin/CoMeta_bud_class_sing -OTU $class2tax -mr $numMR -t "$numthreadSING" -t "$numthreadSING" -tall "$numthreadALL"  -k $kmer -mm $MISMATCH -cl $class_all -S "$nameMeta" \
+-WS "$PATH_META_SET" -WK $DIR_KMER_DATABASE -dirncbitax $DIR_TAX_NCBI -diroutref "$PATH_SEQ_REF"  \
+-WD "$PATH_TEMP_BIN" -dirin $DIR_MAIN_SCORE -proc "$PROCSIM" -suffDESCRP _"$GROUPTYPE" -mc $MC -stepk   "$LEN_STEP" -maindir $DIRPROG  
+
+done
+
+# **********************************************************************************************************************************
+# At the output you receive:
+# In folder "scores_aut", five folders: 
+# 1. 		"tax_<name_tax>" for each level. Each folder "tax_<name_tax>" contains: 
+# 1.1 		"Summarize_Class_dup.txt" - one file which includes number of how many reads (second col) have been classified to <nomber from first col> groups. 
+# 1.2 		"OTU_<name>" list of folders contain classification results. Each of them contains:
+# 1.2.1 	"score_class_mc5_k24_.txt" file summarize comparison step
+# 1.2.2		"<name>_M.out" list of match files after comparison step
+# 1.2.3		"<name>_MM.out" list of mismatch files after comparison step
+# 1.2.4		"MisMatch_all-1_sim100" - folder which contains classifcation results (after assignment step). It contains:
+# 1.2.4.1	"<name_group>.txt", list of file(s) which contain reads classified to <name_group> taxonomic group
+# 1.2.4.2	"<name>_notknow.txt", file contains reads, which were not classified to any of the groups. 
+# 1.2.4.2	"<name>_MultiClass.txt", file contains reads which were classified to multiple groups. In the example, only one read was classified to two groups: 
+# 1.3		"complete_<name>", list of empty files, which means that the classification <name> stage had already place
+
