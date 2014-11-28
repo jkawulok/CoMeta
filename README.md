@@ -69,10 +69,11 @@ Installation, download files and programs, adding the taxonomic id (tax number) 
 			
 	II ***** CoMeta program *****
 	1.	Directory structure:
-			bin		- main directory of CoMeta (programs after compilation will be stored here), also it includes two perl scipts
-					(gen_list_names.pl and class_seq_to_taxon_all.pl)
-			src		- source codes
-			example - folder with sample data
+			bin			- main directory of CoMeta (programs after compilation will be stored here), also it includes perl and shell scipts
+			src			- folder with source codes
+			example 	- folder with sample data
+			makefile	- file defines the prototype and library files used and the order of compilation
+			readme.txt	- this file
 		
 		
 	2.	Binaries:
@@ -281,6 +282,32 @@ a simple example of usage is in "Example_cometa.txt" file)
 				-mc<numMC> - the percent identity to classify a match [%] 
 				-k<numK> - k-mer length
 	
+	
+	
+*******************************************************************************************************************************************************
+D.	Selection of some CoMeta parameters
+------------
+	***** -k *****
+	k-mer length (k), default: 24. The larger k is, the less number of false classified reads are, but also the total number of classified reads 
+	(including the correctly classified) also decreases.
+	Recommended for Illumina reads (short reads): k=24 	and for LS454 reads (long reads): k=27-30
+		
+	***** -mc *****
+	The percent identity to classify a match, default: 5. 
+	The query read is pre-assigned to the tested group, if it (or its reverse complement) accumulates a match score exceedinga chosen match cut-off value (MC).
+	Too small value  can adversely affect the outcome, when a match score for complementary read is higher than for the original, and when match score 
+	for the original read meets the requirements of the MC. However, these situations are rare.
+	
+	***** -t and -tall *****
+	-t <NR_THREADCOMETA> - total number of computional threads for single k-mer database and classification  (default: 4)
+	-tall <NR_THREADS> - total number of computation threads (default: equal to no. of system cores). At the same time, "NUMJOBS" databases are built and reads
+	are compared with "NUMJOBS" groups, where NUMJOBS=NR_THREADS/NR_THREADCOMETA. Therefore, the multiple of "NR_THREADCOMETA" is recommended. 
+	For more groups to which the reads are compared (e.g., for low levels of taxonomic classification), it is recommended to use a larger number of <NR_THREADS> threads. 
+
+	
+*******************************************************************************************************************************************************
+
+
 
 
 
