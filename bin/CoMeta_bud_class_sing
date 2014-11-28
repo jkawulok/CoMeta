@@ -1,0 +1,293 @@
+#!/bin/bash
+
+
+#	This file is a part of CoMeta software.
+#	The homepage of the CoMeta project is http://sun.aei.polsl.pl/cometa
+
+
+echo -e "\n\n\n"
+
+
+TAX_SING_LEV=""
+TAX_PREV_LEV=""
+LEN_KMER=24
+LEN_STEP=0
+
+FILE_META_SET=""
+
+DIR_MAIN_BIN=`pwd`
+DIR_TAX_NCBI="."
+DIR_SUMMARY="."
+DIR_TEMP_BIN="."
+DIR_KMER_DATABASE=""
+
+PATH_SEQ_REF=""
+
+PATH_META_SET="."
+
+SUFFIX_DESCRP="GR"
+
+TAKE_MM=1;
+CLASS_ALL=-1;
+PROC_SIM=100;
+CHECK_CLASS=0;
+NR_THREADS=0
+NR_THREADCOMETA=4
+NR_MEM=0
+MATCH_CUT_OFF=5
+
+while [ "${1+defined}" ]; do
+echo "$1" "$2"
+ case "$1" in
+ 	-S)
+	FILE_META_SET="$2"
+	shift 2
+	;;
+	-WS)
+	PATH_META_SET="$2"
+	shift 2
+	;;
+	-WD)
+	DIR_TEMP_BIN="$2"
+	shift 2
+	;;
+	-t)
+	NR_THREADCOMETA="$2"
+	shift 2
+	;;
+	-tall)
+	NR_THREADS="$2"
+	shift 2
+	;;
+	-mr)
+	NR_MEM="$2"
+	shift 2
+	;;
+	-proc)
+	PROC_SIM="$2"
+	shift 2
+	;;	
+	-diroutref)
+	PATH_SEQ_REF="$2"
+	shift 2
+	;;
+	-OTU)
+	TAX_SING_LEV="$2"
+	shift 2
+	;;
+	-OTUPREV)
+	TAX_PREV_LEV="$2"
+	shift 2
+	;;
+	-k)
+	LEN_KMER="$2"
+	shift 2
+	;;
+	-stepk)
+	LEN_STEP="$2"
+	shift 2
+	;;
+	-WK)
+	DIR_KMER_DATABASE="$2"
+	shift 2
+	;;
+	-dirncbitax)
+	DIR_TAX_NCBI="$2"
+	shift 2
+	;;
+	-dirin)
+	DIR_MAIN_SCORE_CLASS="$2"
+	shift 2
+	;;
+	-mc)
+	MATCH_CUT_OFF="$2"
+	shift 2
+	;;
+	-mm)
+	TAKE_MM="$2"
+	shift 2
+	;;
+	-ch)
+	CHECK_CLASS="$2"
+	shift 2
+	;;
+	-cl)
+	CLASS_ALL="$2"
+	shift 2
+	;;
+	-suffDESCRP)
+	SUFFIX_DESCRP="$2"
+	shift 2
+	;;
+	-maindir)
+	DIR_MAIN_BIN="$2"
+	shift 2
+	;;
+
+	-*)
+	  echo "Error: Unknown option: $1" >&2
+	  exit 1
+	  ;;
+      *)  # No more options
+	  break
+	  ;;
+    esac
+done
+
+if [ "$TAX_SING_LEV" = "" ]; then
+echo "ERROR OTU: $TAX_SING_LEV!!!";  
+exit
+fi
+
+
+
+PREF_META_SET=${FILE_META_SET%.*}
+
+if [ "$TAX_PREV_LEV" = "" ]; then
+case "$TAX_SING_LEV" in
+  "phylum") TAX_PREV_LEV=superkingdom ;;
+  "class") TAX_PREV_LEV=phylum ;;
+  "order") TAX_PREV_LEV=class;;
+  "family") TAX_PREV_LEV=order;;
+  "genus") TAX_PREV_LEV=family;;
+  "species") TAX_PREV_LEV=genus;;
+  *) echo "ERROR OTU: $TAX_SING_LEV!!!";  exit
+esac
+fi
+
+
+
+export LEN_KMER
+export PATH_SEQ_REF
+export TAX_SING_LEV
+export TAX_PREV_LEV
+export DIR_MAIN_SCORE_CLASS
+export DIR_MAIN_BIN
+export DIR_TAX_NCBI
+export FILE_META_SET					
+export PREF_META_SET					
+export DIR_SUMMARY						
+export DIR_TEMP_BIN					
+export DIR_KMER_DATABASE				
+export NR_THREADS
+export NR_THREADS_SERVER=$(grep 'model name' /proc/cpuinfo | wc -l );
+export NR_THREADCOMETA					
+export NR_MEM	
+export MATCH_CUT_OFF
+export TAKE_MM
+export CLASS_ALL
+export CHECK_CLASS
+export PATH_META_SET
+export LIST_GROUP
+export PROC_SIM
+export ERROR_PROC=0;
+export SUFFIX_DESCRP
+export LEN_STEP
+
+pathOut=$DIR_MAIN_SCORE_CLASS/tax_"$TAX_SING_LEV"/  # scores after classify
+suffix=k"$LEN_KMER"_mc"$MATCH_CUT_OFF"_mm"$TAKE_MM"_"$CLASS_ALL"_sim"$PROC_SIM"
+if [ ! -d "$pathOut" ]; then
+	mkdir "$pathOut" ;
+fi 
+
+
+echo -e "\n\n\n===================================================================================" >&2
+echo "======================================= $TAX_SING_LEV ======================================= " >&2
+echo -e "===================================================================================\n\n" >&2
+
+
+
+echo -e "\n\n\n########################################################################"
+echo "########################################################################"
+echo "####################### Divide sequence ###########################"
+FILESREADY=$pathOut/comlete_divseq_"$suffix"
+if [ -e "$FILESREADY" ]
+then
+	echo "Skipped this step"
+else
+	time $DIR_MAIN_BIN/divide_seq.sh
+		
+	if [ $ERROR_PROC -eq 1 ]
+	then
+		echo -e "\n!!!!!!!!!! ERROR !!!!!!!!!!\n"
+		exit;
+	else
+		touch "$FILESREADY";
+	fi
+fi
+
+
+
+echo -e "\n\n\n########################################################################"
+echo "########################################################################"
+echo "####################### Build kmer database ###########################"
+FILESREADY=$pathOut/comlete_buildkmer_"$suffix"
+if [ -e "$FILESREADY" ]
+then
+	echo "Skipped this step"
+else
+	time $DIR_MAIN_BIN/build_db_it.sh
+			
+	if [ $ERROR_PROC -eq 1 ]
+	then
+		echo -e "\n!!!!!!!!!! ERROR !!!!!!!!!!\n"
+		exit;
+	else
+		touch "$FILESREADY";
+		if [ ! -e "$FILESREADY" ]; then exit; fi	
+	fi
+fi
+
+
+
+echo -e "\n\n\n########################################################################"
+echo "########################################################################"
+echo "####################### Classify reads part1 ###########################"
+FILESREADY=$pathOut/comlete_classmetait_"$suffix"
+if [ -e "$FILESREADY" ]
+then
+	echo "Skipped this step"
+else
+	time $DIR_MAIN_BIN/class_meta_it.sh
+		
+	if [ $ERROR_PROC -eq 1 ]
+	then
+		echo -e "\n!!!!!!!!!! ERROR !!!!!!!!!!\n"
+		exit;
+	else
+		touch "$FILESREADY";
+		if [ ! -e "$FILESREADY" ]; then exit; fi	
+	fi
+fi
+
+
+
+echo -e "\n\n\n########################################################################"
+echo "########################################################################"
+echo "####################### Classify reads part2 ###########################"
+FILESREADY=$pathOut/comlete_class2one_"$suffix"
+if [ -e "$FILESREADY" ]
+then
+	echo "Skipped this step"
+else
+	time $DIR_MAIN_BIN/class_2one.sh
+			
+	if [ $ERROR_PROC -eq 1 ]
+	then
+		echo -e "\n!!!!!!!!!! ERROR !!!!!!!!!!\n"
+		exit;
+	else
+		touch "$FILESREADY";
+		if [ ! -e "$FILESREADY" ]; then exit; fi	
+	fi
+fi
+
+
+
+
+
+
+
+echo -e "\n\n\n########################################################################"
+echo END
+
