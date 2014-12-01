@@ -105,7 +105,7 @@ Installation, download files and programs, adding the taxonomic id (tax number) 
 
 B.	Description of the use of files that automate the databases building and classification 
 ------------
-(a simple example of usage is in "Example_auto_cometa.txt" file)
+a simple example of usage is in "Example_auto_cometa.txt" file
 
 	There are two scripts to automate the building of databases and reads classification:
 	* CoMeta_bud_class_first - The script compares ready with each group. This is a classification used to start the taxonomic classification 
@@ -175,9 +175,9 @@ B.	Description of the use of files that automate the databases building and clas
 
 	
 *******************************************************************************************************************************************************
-C.	Description of the various stages of building k-mer databases and read classification (
+C.	Description of the various stages of building k-mer databases and read classification
 ------------
-a simple example of usage is in "Example_cometa.txt" file)
+a simple example of usage is in "Example_cometa.txt" file
 
 
 	I ***** Data preparation for the building of k-mer databases (used only in the taxonomic classification) ***** 
