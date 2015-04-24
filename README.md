@@ -6,7 +6,7 @@ CoMeta (<b>C</b>lassification <b>o</b>f <b>meta</b>genomes) is a tool used to as
 Licence: CoMeta software distributed under GNU GPL 2 licence.
 
 This repository contains the current version of the program.
-The initial version of the Cometa is described in paper: <u><i>Jolanta Kawulok, Sebastian Deorowicz: CoMeta: Classification of metagenomes using k-mers. submitted to journal </i> </u>
+The initial version of the Cometa is described in paper: <u><i>Jolanta Kawulok, Sebastian Deorowicz (2015) CoMeta: Classification of Metagenomes Using k-mers. PLoS ONE 10(4): e0121453. doi:10.1371/journal.pone.0121453 </i> </u>
 and is available at http://sun.aei.polsl.pl/cometa/.
 
 Contact: 
