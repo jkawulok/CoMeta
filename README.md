@@ -6,7 +6,7 @@ CoMeta (<b>C</b>lassification <b>o</b>f <b>meta</b>genomes) is a tool used to as
 Licence: CoMeta software distributed under GNU GPL 2 licence.
 
 This repository contains the current version of the program.
-The initial version of the Cometa is described in paper: <u><i>Jolanta Kawulok, Sebastian Deorowicz: CoMeta: Classification of metagenomes using k-mers. submitted to journal </i> </u>
+The initial version of the Cometa is described in paper: <u><i>Jolanta Kawulok, Sebastian Deorowicz (2015) CoMeta: Classification of Metagenomes Using k-mers. PLoS ONE 10(4): e0121453. doi:10.1371/journal.pone.0121453 </i> </u>
 and is available at http://sun.aei.polsl.pl/cometa/.
 
 Contact: 
@@ -105,7 +105,7 @@ Installation, download files and programs, adding the taxonomic id (tax number) 
 
 B.	Description of the use of files that automate the databases building and classification 
 ------------
-(a simple example of usage is in "Example_auto_cometa.txt" file)
+a simple example of usage is in "Example_auto_cometa.txt" file
 
 	There are two scripts to automate the building of databases and reads classification:
 	* CoMeta_bud_class_first - The script compares ready with each group. This is a classification used to start the taxonomic classification 
@@ -175,9 +175,9 @@ B.	Description of the use of files that automate the databases building and clas
 
 	
 *******************************************************************************************************************************************************
-C.	Description of the various stages of building k-mer databases and read classification (
+C.	Description of the various stages of building k-mer databases and read classification
 ------------
-a simple example of usage is in "Example_cometa.txt" file)
+a simple example of usage is in "Example_cometa.txt" file
 
 
 	I ***** Data preparation for the building of k-mer databases (used only in the taxonomic classification) ***** 
